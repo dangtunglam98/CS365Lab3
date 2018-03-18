@@ -17,6 +17,16 @@ def get_frequency(attributes, data, targetAttr):
 	    	valFreq[entry[i]]  = 1.0
 	return valFreq
 
+def decision_major(attributes,data,resultAttr):
+	major_freq = get_frequency(attributes,data,resultAttr)
+	maximum = 0
+	major = ""
+	for key in major_freq.keys():
+		if major_freq[key] > maximum:
+			maximum = major_freq[key]
+			major = key
+	return major
+
 def entropy(attributes, data, targetAttr):
 	entropy_freq = get_frequency(attributes,data,targetAttr)
 	dataEntropy = 0.0
@@ -99,7 +109,7 @@ def make_tree(data, attributes, resultattr):
 	tree = {best:{}}
 	val_best = get_value(data,attributes,best)
 	if len(attributes) - 1 <= 0:
-		return False
+		return decision_major(attributes,data,resultattr)
 	else:
 		for values in val_best:
 			example =  getExamples(data, attributes, best, values)
