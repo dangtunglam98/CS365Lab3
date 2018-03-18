@@ -108,8 +108,12 @@ def make_tree(data, attributes, resultattr):
 	best = best_attribute(attributes,data,resultattr)
 	tree = {best:{}}
 	val_best = get_value(data,attributes,best)
+	index_result = attributes.index(resultattr)
+	result_vals = [row[index_result] for row in data]
 	if len(attributes) - 1 <= 0:
 		return decision_major(attributes,data,resultattr)
+	elif result_vals.count([result_vals[0]]) == len(result_vals):
+		return result_vals[0]
 	else:
 		for values in val_best:
 			example =  getExamples(data, attributes, best, values)
