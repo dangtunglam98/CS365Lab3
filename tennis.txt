@@ -5,7 +5,7 @@ overcast	hot	high	weak	yes
 rain	mild	high	weak	yes
 rain	cool	normal	weak	yes
 rain	cool	normal	strong	no
-overcast	cool	normal	strong	yes
+overcast	cool	normal	strong	yes	
 sunny	mild	high	weak	no
 sunny	cool	normal	weak	yes
 rain	mild	normal	weak	yes

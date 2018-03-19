@@ -110,7 +110,7 @@ def make_tree(data, attributes, resultattr):
 	val_best = get_value(data,attributes,best)
 	index_result = attributes.index(resultattr)
 	result_vals = [row[index_result] for row in data]
-	if len(attributes) - 1 <= 0:
+	if len(attributes) -1 <= 0:
 		return decision_major(attributes,data,resultattr)
 	elif result_vals.count(result_vals[0]) == len(result_vals):
 		return result_vals[0]
@@ -142,6 +142,18 @@ def myprint(dictionary,attributes):
 		else:
 			myprint(value,attributes)
 			
+def LOOCV(data,attributes,target):
+	#for row in data:
+	row = data[0]
+	test = [row]
+	test_tree = make_tree(test,attributes,target)
+	train_set = data
+	train_set.remove(row)
+	train_tree = make_tree(train_set,attributes,target)
+	print(test)
+	print(train_tree)
+
+
 
 # def information_gain(result, attr):
 # 	total = 0
@@ -165,7 +177,7 @@ def myprint(dictionary,attributes):
 
 
 
-dataset = txt_to_dataset('tennis.txt')
+dataset = txt_to_dataset('pets.txt')
 attributes = dataset[0]
 dataset.remove(attributes)
 target = attributes[-1]
@@ -179,15 +191,17 @@ best_val = get_value(dataset,attributes,best)
 # print(get_index(attributes,best))
 diction = make_tree(dataset,attributes,target)
 tree_str = json.dumps(diction, indent=8)
-tree_str = tree_str.replace("\n    ", "\n")
-tree_str = tree_str.replace('"', "")
-tree_str = tree_str.replace(',', "")
-tree_str = tree_str.replace("{", "")
-tree_str = tree_str.replace("}", "")
-tree_str = tree_str.replace("    ", " | ")
-tree_str = tree_str.replace("  ", " ")
+LOOCV(dataset,attributes,target)
+# print(tree_str)
+# tree_str = tree_str.replace("\n    ", "\n")
+# tree_str = tree_str.replace('"', "")
+# tree_str = tree_str.replace(',', "")
+# tree_str = tree_str.replace("{", "")
+# tree_str = tree_str.replace("}", "")
+# tree_str = tree_str.replace("    ", " | ")
+# tree_str = tree_str.replace("  ", " ")
 
-print(tree_str)
+# print(tree_str)
 #print(diction)
 #print(myprint(diction,attributes))
 #dict_to_tree(diction)	
