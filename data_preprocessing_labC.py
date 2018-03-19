@@ -75,6 +75,16 @@ def get_value(data, attributes, bestattr):
 				values.append(entry[index_attr])
 	return values
 
+def attr_value_dict(data, attributes, resultattr):
+	diction = {}
+	newAttr = attributes[:]
+	attri_hier = attr_hierarchy(attributes,data, resultattr)
+	for item in attri_hier:
+	 	values = get_value(data, newAttr, item)
+	 	diction[item] = values
+	#  	for val in values:
+	#  		diction[item].append(val)
+	return diction
 
 # def get_example(data, attributes, bestattr, val):
 # 	index_best = attributes.index(bestattr)
@@ -88,7 +98,7 @@ def get_value(data, attributes, bestattr):
 # 			examples.append(newRow)
 # 	return examples
 def getExamples(data, attributes, best, val):
-    examples = [[]]
+    examples = []
     list_attr = attributes
     index = get_index(list_attr,best)
     #index = 0
@@ -101,25 +111,27 @@ def getExamples(data, attributes, best, val):
                 if(i != index):
                     newEntry.append(entry[i])
             examples.append(newEntry)
-    examples.remove([])
+    
     return examples
 
-def make_tree(data, attributes, resultattr):
-	best = best_attribute(attributes,data,resultattr)
-	tree = {best:{}}
-	val_best = get_value(data,attributes,best)
+def make_tree(data, attributes, resultattr, parent_data = None):
 	index_result = attributes.index(resultattr)
 	result_vals = [row[index_result] for row in data]
-	if len(attributes) -1 <= 0:
+	if not data:
+		return decision_major(attributes,parent_data,resultattr)
+	elif len(attributes) -1 <= 0:
 		return decision_major(attributes,data,resultattr)
 	elif result_vals.count(result_vals[0]) == len(result_vals):
 		return result_vals[0]
 	else:
+		best = best_attribute(attributes,data,resultattr)
+		tree = {best:{}}
+		val_best = get_value(data,attributes,best)
 		for values in val_best:
 			example =  getExamples(data, attributes, best, values)
 			newAttr = attributes[:]
 			newAttr.remove(best)
-			subtree = make_tree(example, newAttr, resultattr)
+			subtree = make_tree(example, newAttr, resultattr, data)
 			tree[best][values] = subtree
 
 	return tree
@@ -142,18 +154,32 @@ def myprint(dictionary,attributes):
 		else:
 			myprint(value,attributes)
 			
-def LOOCV(data,attributes,target):
-	#for row in data:
-	row = data[0]
-	test = [row]
-	test_tree = make_tree(test,attributes,target)
-	train_set = data
-	train_set.remove(row)
-	train_tree = make_tree(train_set,attributes,target)
-	print(test)
-	print(train_tree)
+# def LOOCV(data,attributes,target):
+#  	# for row in data:
+#  	row = data[0]
+#  	train_set = data
+#  	train_set.remove(row)
+#  	train_tree = make_tree(train_set,attributes,target)
+#  	row = row[:len(row) - 1]
+#  	prediction = predict(row,train_tree, attributes)
+#  	return prediction
 
-
+# def predict(row, tree, attributes):
+# 	if isinstance(tree, str):
+# 		return tree 
+# 	for k, v in tree.items():
+# 		if k in attributes:
+# 			if isinstance(v, str):
+# 				return v
+# 			elif isinstance(v,dict):
+# 				for key, value in v.items():
+				 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+		 		# for key, value in v.items():
+		 		# 	newkey = key
+		 		# 	return newkey
+		# 			predict(row, dic, attributes)
+		# elif k in row:
+		# 	predict(row, v, attributes)
 
 # def information_gain(result, attr):
 # 	total = 0
@@ -181,18 +207,21 @@ dataset = txt_to_dataset('pets.txt')
 attributes = dataset[0]
 dataset.remove(attributes)
 target = attributes[-1]
-best = str(best_attribute(attributes,dataset,target))
-best_val = get_value(dataset,attributes,best)
+#best = str(best_attribute(attributes,dataset,target))
+#best_val = get_value(dataset,attributes,best)
 #print(attr_hierarchy(attributes,dataset,target))
+print(attr_value_dict(dataset,attributes,target))
+
 # print(dataset)
 # print(attributes)
 # print(best)
 # print(best_val)
 # print(get_index(attributes,best))
-diction = make_tree(dataset,attributes,target)
-tree_str = json.dumps(diction, indent=8)
-LOOCV(dataset,attributes,target)
-# print(tree_str)
+#print(getExamples(dataset,attributes,best,"gigantic"))
+# diction = make_tree(dataset,attributes,target)
+# tree_str = json.dumps(diction, indent=8)
+# #print(LOOCV(dataset,attributes,target)) x
+
 # tree_str = tree_str.replace("\n    ", "\n")
 # tree_str = tree_str.replace('"', "")
 # tree_str = tree_str.replace(',', "")
@@ -201,7 +230,7 @@ LOOCV(dataset,attributes,target)
 # tree_str = tree_str.replace("    ", " | ")
 # tree_str = tree_str.replace("  ", " ")
 
-# print(tree_str)
+#print(tree_str)
 #print(diction)
 #print(myprint(diction,attributes))
 #dict_to_tree(diction)	
