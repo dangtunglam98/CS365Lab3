@@ -114,7 +114,7 @@ def getExamples(data, attributes, best, val):
     
     return examples
 
-def make_tree(data, attributes, resultattr, parent_data = None):
+def make_tree(data, attributes, resultattr, parent_data, original_attribute, old_data):
 	index_result = attributes.index(resultattr)
 	result_vals = [row[index_result] for row in data]
 	if not data:
@@ -126,13 +126,22 @@ def make_tree(data, attributes, resultattr, parent_data = None):
 	else:
 		best = best_attribute(attributes,data,resultattr)
 		tree = {best:{}}
-		val_best = get_value(data,attributes,best)
-		for values in val_best:
-			example =  getExamples(data, attributes, best, values)
-			newAttr = attributes[:]
-			newAttr.remove(best)
-			subtree = make_tree(example, newAttr, resultattr, data)
-			tree[best][values] = subtree
+		ins = original_attribute[:]
+		old = old_data[:]
+		val_best = attr_value_dict(old_data,ins,resultattr)
+		for key, value in val_best.items():
+			if key == best:
+	#			print (key)
+	 			for v in value:
+	 				#print(v)
+	 				example =  getExamples(data, attributes, best, v)
+	 				#print(example)
+	 				newAttr = attributes[:]
+	 				newAttr.remove(best)
+	 				subtree = make_tree(example, newAttr, resultattr, data, original_attribute,old_data)
+	 				#print(newAttr)
+	 				#print(subtree)
+	 				tree[best][v] = subtree
 
 	return tree
 
@@ -206,11 +215,12 @@ def myprint(dictionary,attributes):
 dataset = txt_to_dataset('pets.txt')
 attributes = dataset[0]
 dataset.remove(attributes)
-target = attributes[-1]
+target = "iscat"
 #best = str(best_attribute(attributes,dataset,target))
 #best_val = get_value(dataset,attributes,best)
 #print(attr_hierarchy(attributes,dataset,target))
-print(attr_value_dict(dataset,attributes,target))
+#print(attr_value_dict(dataset,attributes,target))
+diction = make_tree(dataset, attributes, target, None, attributes, dataset)
 
 # print(dataset)
 # print(attributes)
@@ -218,28 +228,18 @@ print(attr_value_dict(dataset,attributes,target))
 # print(best_val)
 # print(get_index(attributes,best))
 #print(getExamples(dataset,attributes,best,"gigantic"))
-# diction = make_tree(dataset,attributes,target)
-# tree_str = json.dumps(diction, indent=8)
+# make_tree(dataset,attributes,target)
+tree_str = json.dumps(diction, indent=8)
 # #print(LOOCV(dataset,attributes,target)) x
 
-# tree_str = tree_str.replace("\n    ", "\n")
-# tree_str = tree_str.replace('"', "")
-# tree_str = tree_str.replace(',', "")
-# tree_str = tree_str.replace("{", "")
-# tree_str = tree_str.replace("}", "")
-# tree_str = tree_str.replace("    ", " | ")
-# tree_str = tree_str.replace("  ", " ")
+tree_str = tree_str.replace("\n    ", "\n")
+tree_str = tree_str.replace('"', "")
+tree_str = tree_str.replace(',', "")
+tree_str = tree_str.replace("{", "")
+tree_str = tree_str.replace("}", "")
+tree_str = tree_str.replace("    ", " | ")
+tree_str = tree_str.replace("  ", " ")
 
-#print(tree_str)
+print(tree_str)
 #print(diction)
 #print(myprint(diction,attributes))
-#dict_to_tree(diction)	
-# print(attr_hierarchy(attribute,dataset,target))
-# print(make_tree(dataset,attribute,target))
-# print(get_value(dataset,attribute,best))
-# print(information_gain(attributes,dataset,"outlook", "playtennis"))
-# print(information_gain(attributes,dataset,"temperature", "playtennis"))
-# print(information_gain(attributes,dataset,"humidity", "playtennis"))
-# print(information_gain(attributes,dataset,"wind", "playtennis"))
-# print(attr_hierarchy(attributes,dataset,target))
-# print(getExamples(dataset,attributes,"wind","weak"))
