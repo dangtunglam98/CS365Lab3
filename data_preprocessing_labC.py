@@ -17,7 +17,7 @@ def get_frequency(attributes, data, targetAttr):
 	    	valFreq[entry[i]]  = 1.0
 	return valFreq
 
-def decision_major(attributes,data,resultAttr):
+def plurality_value(attributes,data,resultAttr):
 	major_freq = get_frequency(attributes,data,resultAttr)
 	maximum = 0
 	major = ""
@@ -114,13 +114,15 @@ def getExamples(data, attributes, best, val):
     
     return examples
 
-def make_tree(data, attributes, resultattr, parent_data, original_attribute, old_data):
+def make_tree(data, attributes, resultattr, parent_data, original_attribute, old_data, parent_attribute):
 	index_result = attributes.index(resultattr)
 	result_vals = [row[index_result] for row in data]
+
 	if not data:
-		return decision_major(attributes,parent_data,resultattr)
+		return plurality_value(parent_attribute,parent_data,resultattr)
 	elif len(attributes) -1 <= 0:
-		return decision_major(attributes,data,resultattr)
+		return plurality_value(attributes,data,resultattr)
+		 
 	elif result_vals.count(result_vals[0]) == len(result_vals):
 		return result_vals[0]
 	else:
@@ -131,16 +133,11 @@ def make_tree(data, attributes, resultattr, parent_data, original_attribute, old
 		val_best = attr_value_dict(old_data,ins,resultattr)
 		for key, value in val_best.items():
 			if key == best:
-	#			print (key)
 	 			for v in value:
-	 				#print(v)
 	 				example =  getExamples(data, attributes, best, v)
-	 				#print(example)
 	 				newAttr = attributes[:]
 	 				newAttr.remove(best)
-	 				subtree = make_tree(example, newAttr, resultattr, data, original_attribute,old_data)
-	 				#print(newAttr)
-	 				#print(subtree)
+	 				subtree = make_tree(example, newAttr, resultattr, data, original_attribute,old_data,attributes)
 	 				tree[best][v] = subtree
 
 	return tree
@@ -148,89 +145,67 @@ def make_tree(data, attributes, resultattr, parent_data, original_attribute, old
 def get_index(attributes, attr):
 	index = attributes.index(attr)
 	return index
-
-def myprint(dictionary,attributes): 
-	for key, value in dictionary.items():
-		if key in attributes:
-			if isinstance(value, dict):
-				for k in value.keys():
-					print(key + ":" + k)
-					myprint(value,attributes)
-			else:
-				print(key + ":" + str(value))
-		elif isinstance(value,bool):
-			print("	LOL" + ": " + str(value))		
-		else:
-			myprint(value,attributes)
 			
-# def LOOCV(data,attributes,target):
-#  	# for row in data:
-#  	row = data[0]
-#  	train_set = data
-#  	train_set.remove(row)
-#  	train_tree = make_tree(train_set,attributes,target)
-#  	row = row[:len(row) - 1]
-#  	prediction = predict(row,train_tree, attributes)
-#  	return prediction
+def LOOCV(data,attributes,target):
+	old_data = data[:]
+	predict_num = 0
+	total = 0
+	for row in data:
+		total += 1
+		train_set = data[:]
+		train_set.remove(row)
+		train_tree = make_tree(train_set,attributes,target,None, attributes, old_data,attributes)
+		prediction = predict(row,train_tree, attributes)
+		if prediction == row[-1]:
+			predict_num +=1
+	accuracy = predict_num/total * 100
+	return accuracy
 
-# def predict(row, tree, attributes):
-# 	if isinstance(tree, str):
-# 		return tree 
-# 	for k, v in tree.items():
-# 		if k in attributes:
-# 			if isinstance(v, str):
-# 				return v
-# 			elif isinstance(v,dict):
-# 				for key, value in v.items():
-				 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-		 		# for key, value in v.items():
-		 		# 	newkey = key
-		 		# 	return newkey
-		# 			predict(row, dic, attributes)
-		# elif k in row:
-		# 	predict(row, v, attributes)
+			
 
-# def information_gain(result, attr):
-# 	total = 0
-# 	for element in attr:
-# 		total = total + sum(element)/ sum(result) * entropy(element)
-# 	gain = entropy(result) - total
-# 	return gain
+def predict(row, tree, attributes):
+	attributes = attributes[:len(attributes)]
+	for k, v in tree.items():
+		if isinstance(v, str):
+			return v
+		elif k in attributes:
+			index_attr = attributes.index(k)
+			for key, value in v.items():
+				if key == row[index_attr]:
+					if isinstance(value,str):
+						return value
+					elif isinstance(value,dict):
+						return predict(row,value,attributes)
 
-# def get_result(dataset):
-# 	Yes = 0
-# 	No = 0
-# 	result = []
-# 	dataset_no_headings = dataset[1:]
-# 	for row in dataset_no_headings:
-# 		if row[len(row)-1] in ["yes","Yes","True","true"]:
-# 			Yes += 1
-# 		else:
-# 			No += 1
-# 	result = [Yes , No]
-# 	return result
+def accuracy_test(data,attributes,target):
+	tree = make_tree(data, attributes, target, None, attributes, data,attributes)
+	predict_num = 0
+	total = 0
+	for row in data:
+		total += 1
+		prediction = predict(row,tree, attributes)
+		if prediction == row[-1]:
+			predict_num +=1
+	accuracy = predict_num/total * 100
+	return accuracy
+
+
 
 
 
 dataset = txt_to_dataset('pets.txt')
 attributes = dataset[0]
 dataset.remove(attributes)
-target = "iscat"
-#best = str(best_attribute(attributes,dataset,target))
-#best_val = get_value(dataset,attributes,best)
-#print(attr_hierarchy(attributes,dataset,target))
-#print(attr_value_dict(dataset,attributes,target))
-diction = make_tree(dataset, attributes, target, None, attributes, dataset)
+target = attributes[-1]
+#row = dataset[45]
+diction = make_tree(dataset, attributes, target, None, attributes, dataset, attributes)
+#print(row)
 
-# print(dataset)
-# print(attributes)
-# print(best)
-# print(best_val)
-# print(get_index(attributes,best))
-#print(getExamples(dataset,attributes,best,"gigantic"))
-# make_tree(dataset,attributes,target)
+
+# diction = make_tree(dataset, attributes, target, None, attributes, dataset)
+#print(diction)
+
 tree_str = json.dumps(diction, indent=8)
-# #print(LOOCV(dataset,attributes,target)) x
 
 tree_str = tree_str.replace("\n    ", "\n")
 tree_str = tree_str.replace('"', "")
@@ -239,7 +214,10 @@ tree_str = tree_str.replace("{", "")
 tree_str = tree_str.replace("}", "")
 tree_str = tree_str.replace("    ", " | ")
 tree_str = tree_str.replace("  ", " ")
-
+#print(row)
+#print(predict(row,diction,attributes))
 print(tree_str)
+# print(LOOCV(dataset,attributes,target)) 
+#print(accuracy_test(dataset,attributes,target))
 #print(diction)
 #print(myprint(diction,attributes))
