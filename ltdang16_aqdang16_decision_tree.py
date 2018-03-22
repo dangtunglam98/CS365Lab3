@@ -1,15 +1,14 @@
 from math import log
-import json
 def txt_to_dataset(txtfile):
+	"""Return list of list of data"""
 	dataset = open(txtfile, 'r')
 	dataset = [line.split() for line in dataset.readlines()]
 	return dataset
 
-# print(txt_to_dataset('pets.txt'))
 def get_frequency(attributes, data, targetAttr):
+	"""Return a dictionary of the frequency of value in attributes"""
 	valFreq = {}
 	i = attributes.index(targetAttr)
-	# Calculate the frequency of each of the values in the target attr
 	for entry in data: 
 	    if ((entry[i]) in valFreq):
 	    	valFreq[entry[i]] += 1.0
@@ -18,6 +17,7 @@ def get_frequency(attributes, data, targetAttr):
 	return valFreq
 
 def plurality_value(attributes,data,resultAttr):
+	"""Return the predicted decision of example""" 
 	major_freq = get_frequency(attributes,data,resultAttr)
 	maximum = 0
 	major = ""
@@ -28,6 +28,7 @@ def plurality_value(attributes,data,resultAttr):
 	return major
 
 def entropy(attributes, data, targetAttr):
+	"""Return the entropy"""
 	entropy_freq = get_frequency(attributes,data,targetAttr)
 	dataEntropy = 0.0
 	for freq in entropy_freq.values():
@@ -35,6 +36,7 @@ def entropy(attributes, data, targetAttr):
 	return dataEntropy 
 
 def information_gain(attributes, data, targetAttr, resultAttr):
+	"""Return the information gain"""
 	total = 0.0
 	gain_freq = get_frequency(attributes,data,targetAttr)
 	attr_index = attributes.index(targetAttr)
@@ -46,6 +48,7 @@ def information_gain(attributes, data, targetAttr, resultAttr):
 	return gain
 
 def best_attribute(attributes, data, resultAttr):
+	"""Return the best attribute of the data"""
 	best_attr = attributes[0]
 	max_gain = 0
 	for attr in attributes:
@@ -57,7 +60,9 @@ def best_attribute(attributes, data, resultAttr):
 				max_gain = pos_gain
 				best_attr = attr
 	return best_attr
+
 def attr_hierarchy(attributes,data,resultAttr):
+	"""Return the list of attributes in an importance order"""
 	hierarchy = []
 	poten_attr = attributes
 	while poten_attr != [resultAttr]:
@@ -67,6 +72,7 @@ def attr_hierarchy(attributes,data,resultAttr):
 	return hierarchy
 
 def get_value(data, attributes, bestattr):
+	"""Return the values in an attribute"""
 	index_attr = attributes.index(bestattr)
 	values = []
 	for entry in data:
@@ -76,28 +82,18 @@ def get_value(data, attributes, bestattr):
 	return values
 
 def attr_value_dict(data, attributes, resultattr):
+	"""Return A dictionary that contain attributes as keys and list of values of the attribute"""
 	diction = {}
 	newAttr = attributes[:]
 	attri_hier = attr_hierarchy(attributes,data, resultattr)
 	for item in attri_hier:
 	 	values = get_value(data, newAttr, item)
 	 	diction[item] = values
-	#  	for val in values:
-	#  		diction[item].append(val)
 	return diction
 
-# def get_example(data, attributes, bestattr, val):
-# 	index_best = attributes.index(bestattr)
-# 	examples = []
-# 	for row in data:
-# 		if row[index_best] == val:
-# 			newRow = []
-# 			for i in range (len(row)):
-# 				if i != index_best:
-# 					newRow.append(row[i])
-# 			examples.append(newRow)
-# 	return examples
+
 def getExamples(data, attributes, best, val):
+    """Return examples that contain a certain value of attribute"""
     examples = []
     list_attr = attributes
     index = get_index(list_attr,best)
@@ -114,7 +110,8 @@ def getExamples(data, attributes, best, val):
     
     return examples
 
-def make_tree(data, attributes, resultattr, parent_data, original_attribute, old_data, parent_attribute):
+def decision_tree_learning(data, attributes, resultattr, parent_data, original_attribute, old_data, parent_attribute):
+	"""Return the decision tree in a dictionary form"""
 	index_result = attributes.index(resultattr)
 	result_vals = [row[index_result] for row in data]
 
@@ -137,7 +134,7 @@ def make_tree(data, attributes, resultattr, parent_data, original_attribute, old
 	 				example =  getExamples(data, attributes, best, v)
 	 				newAttr = attributes[:]
 	 				newAttr.remove(best)
-	 				subtree = make_tree(example, newAttr, resultattr, data, original_attribute,old_data,attributes)
+	 				subtree = decision_tree_learning(example, newAttr, resultattr, data, original_attribute,old_data,attributes)
 	 				tree[best][v] = subtree
 
 	return tree
@@ -147,6 +144,7 @@ def get_index(attributes, attr):
 	return index
 			
 def LOOCV(data,attributes,target):
+	"""Return the accuracy level with the LOOCV"""
 	old_data = data[:]
 	predict_num = 0
 	total = 0
@@ -154,7 +152,7 @@ def LOOCV(data,attributes,target):
 		total += 1
 		train_set = data[:]
 		train_set.remove(row)
-		train_tree = make_tree(train_set,attributes,target,None, attributes, old_data,attributes)
+		train_tree = decision_tree_learning(train_set,attributes,target,None, attributes, old_data,attributes)
 		prediction = predict(row,train_tree, attributes)
 		if prediction == row[-1]:
 			predict_num +=1
@@ -164,6 +162,7 @@ def LOOCV(data,attributes,target):
 			
 
 def predict(row, tree, attributes):
+	"""Return the predicted result value of a row in data"""
 	attributes = attributes[:len(attributes)]
 	for k, v in tree.items():
 		if isinstance(v, str):
@@ -178,7 +177,8 @@ def predict(row, tree, attributes):
 						return predict(row,value,attributes)
 
 def accuracy_test(data,attributes,target):
-	tree = make_tree(data, attributes, target, None, attributes, data,attributes)
+	"""Return the accuracy of the dataset"""
+	tree = decision_tree_learning(data, attributes, target, None, attributes, data,attributes)
 	predict_num = 0
 	total = 0
 	for row in data:
@@ -189,35 +189,30 @@ def accuracy_test(data,attributes,target):
 	accuracy = predict_num/total * 100
 	return accuracy
 
+def print_tree(tree,target, tab=""):
+	"""Return a tree in a visualizable format"""
+	for k, v in tree.items():
+		if isinstance(v, str):
+			print(k + ":" + v)
+		else:
+			for key, value in v.items():
+				print(tab + k + ":" + key)
+				if isinstance(value, str):
+					print(tab + "	"+ target+ ":" + value)
+				else:
+					tabNew = tab + "	"
+					print_tree(value, target, tabNew)
+		
 
 
 
+# dataset = txt_to_dataset('titanic2.txt')
+# attributes = dataset[0]
+# dataset.remove(attributes)
+# target = attributes[-1]
+# #row = dataset[45]
+# diction = decision_tree_learning(dataset, attributes, target, None, attributes, dataset, attributes)
+# #print(row)
 
-dataset = txt_to_dataset('pets.txt')
-attributes = dataset[0]
-dataset.remove(attributes)
-target = attributes[-1]
-#row = dataset[45]
-diction = make_tree(dataset, attributes, target, None, attributes, dataset, attributes)
-#print(row)
+# print_tree(diction,target)
 
-
-# diction = make_tree(dataset, attributes, target, None, attributes, dataset)
-#print(diction)
-
-tree_str = json.dumps(diction, indent=8)
-
-tree_str = tree_str.replace("\n    ", "\n")
-tree_str = tree_str.replace('"', "")
-tree_str = tree_str.replace(',', "")
-tree_str = tree_str.replace("{", "")
-tree_str = tree_str.replace("}", "")
-tree_str = tree_str.replace("    ", " | ")
-tree_str = tree_str.replace("  ", " ")
-#print(row)
-#print(predict(row,diction,attributes))
-print(tree_str)
-# print(LOOCV(dataset,attributes,target)) 
-#print(accuracy_test(dataset,attributes,target))
-#print(diction)
-#print(myprint(diction,attributes))
